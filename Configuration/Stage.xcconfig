@@ -1,0 +1,5 @@
+API_BASE_URL = https:/$()/stage.example.invalid
+APP_BUNDLE_IDENTIFIER = com.avinashsharma.ProductsApp.stage
+APP_DISPLAY_NAME = ProductsApp Stage
+ENV_INFO_PLIST = ProductsApp/Support/Info-Secure.plist
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) STAGE
