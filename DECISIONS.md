@@ -13,6 +13,8 @@
 | Backend ordering is authoritative | Featured order and category ranking are not recomputed on-device, preventing drift from server behavior. |
 | One NavigationStack | Enough for all required flows. A coordinator framework, tab architecture, and deep-link system are unnecessary for the PoC. |
 | XCTest with repository/HTTP mocks | Fast deterministic critical-path coverage. Snapshot tests and a broad UI-test suite would consume the remaining time without protecting core behavior proportionally. |
+| Domain enquiry error | The Data repository translates backend validation details into domain field errors, so Presentation does not depend on `APIError` or backend envelopes. |
+| Separate client/backend repositories | Keeps deployment and ownership independent. Reviewer setup assumes sibling checkouts so neither repository contains machine-specific paths. |
 
 ## Assumptions
 
@@ -24,6 +26,7 @@
 - `rating` is always present in JSON but may be `null`; UI displays “Not rated” rather than inventing a zero rating.
 - Enquiry contact details are name and email; message is optional. The client mirrors basic validation for UX, but backend field errors are the authority.
 - A `200` enquiry with `submitted: true` is required before showing Thank You. No optimistic success or automatic POST retry.
+- The Dev build permits cleartext transport for local loopback development. Stage and Prod use the secure plist and HTTPS-only URLs.
 
 ## Simplifications and limitations
 
@@ -31,7 +34,9 @@
 - `AsyncImage` uses system caching behavior; transient image failure shows a placeholder and does not fail the whole screen.
 - App state is in memory. Navigation restoration and deep links are deferred.
 - Error copy favors the backend safe message plus a retry action; detailed error localization is deferred.
+- Stage and production backend URLs are placeholders because deployed environments were not supplied.
+- Automated tests cover presentation state and repository interactions, but there is no UI/snapshot test target. Final visual inspection covered the live Home screen in light and dark mode; interactive traversal of nested screens was blocked by unavailable macOS Computer Use permission and is not claimed as verified.
 
 ## With another day
 
-In priority order: add accessibility/UI tests for the complete enquiry path; introduce image caching and lightweight catalogue caching; add structured client logging and request IDs; improve offline/retry behavior for idempotent GETs; then add localization, deeper visual polish, and deep-link/navigation restoration.
+In priority order: add one UI test for Home -> Details -> Enquiry -> Thank You plus an accessibility audit; introduce image caching and lightweight catalogue caching; add structured client logging and request IDs; improve offline/retry behavior for idempotent GETs; then add localization and deep-link/navigation restoration.

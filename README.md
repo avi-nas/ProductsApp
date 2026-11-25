@@ -1,37 +1,52 @@
 # ProductsApp
 
-Native SwiftUI client for the ProductsBackend catalogue and enquiry API. Phase 1 provides the project foundation, environment configuration, networking, domain models, and repositories. Feature screens and view models are intentionally deferred.
+ProductsApp is a native SwiftUI catalogue for ProductsBackend. The selected challenge stack is **Swift/SwiftUI for iOS** plus the separate **Node.js/TypeScript ProductsBackend** repository. SwiftUI, `NavigationStack`, and async/await provide a compact native client with no third-party packages; the backend keeps Fake Store and SMTP concerns out of the app and makes both providers replaceable.
 
-## Requirements
+## Quick start (under 10 minutes)
 
-- macOS with Xcode 16 or later
-- iOS 16 or later simulator
-- ProductsBackend at `/Users/avinashsharma/Documents/ProductsBackend`
-- Node.js and Docker only when running the backend locally
+Prerequisites:
 
-No third-party iOS dependencies are used.
+- macOS with Xcode 16 or later and an installed iOS Simulator
+- Node.js 20+ and Docker Desktop
+- `ProductsApp` and `ProductsBackend` checked out as sibling directories
 
-## Run locally
+Expected layout:
 
-Start the backend in a separate terminal:
+```text
+workspace/
+  ProductsApp/
+  ProductsBackend/
+```
+
+Start the backend and local Mailpit inbox:
 
 ```sh
-cd /Users/avinashsharma/Documents/ProductsBackend
-cp .env.example .env.dev  # first setup only; keep this file uncommitted
+cd ../ProductsBackend
+test -f .env.dev || cp .env.example .env.dev
 npm ci
 docker compose up -d mailpit
 npm run dev
 ```
 
-Confirm it is reachable:
+Leave that terminal running. Verify the backend in another terminal:
 
 ```sh
 curl --fail --silent --show-error http://127.0.0.1:3000/health
 ```
 
-Then open `ProductsApp.xcodeproj`, select an iOS Simulator and the shared `ProductsApp-Dev` scheme, and Run. The Phase 1 root view is deliberately minimal.
+The response should be `{"status":"ok"}`. Then, from `ProductsApp`:
 
-Command-line verification:
+1. Open `ProductsApp.xcodeproj`.
+2. Select the shared `ProductsApp-Dev` scheme and any iOS Simulator.
+3. Run the app.
+
+Home should load five featured products from the local backend. No paid service, external account, secret, or direct Fake Store client access is required.
+
+## Verify the enquiry flow
+
+Open a product, tap **Enquire about this product**, enter a name and email, and submit. The app shows Thank You only after backend-confirmed SMTP acceptance. Open [Mailpit](http://127.0.0.1:8025) and confirm the new sales email contains the customer and selected product details.
+
+## Build and tests
 
 ```sh
 xcodebuild build \
@@ -46,45 +61,42 @@ xcodebuild test \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-Use any installed simulator name in the test command when `iPhone 17 Pro` is unavailable.
+Replace the simulator name with one listed by `xcrun simctl list devices available` if needed. Tests use repository and HTTP mocks and do not require the backend or Mailpit.
 
 ## Environments
 
-| Scheme | Configuration | API URL source | Transport policy |
+| Scheme | Configuration | Backend URL | Transport |
 | --- | --- | --- | --- |
-| `ProductsApp-Dev` | `Dev.xcconfig` | `http://127.0.0.1:3000` | Cleartext allowed for local development |
-| `ProductsApp-Stage` | `Stage.xcconfig` | Staging placeholder | HTTPS only |
-| `ProductsApp-Prod` | `Prod.xcconfig` | Production placeholder | HTTPS only |
+| `ProductsApp-Dev` | `Dev.xcconfig` | `http://127.0.0.1:3000` | Development-only cleartext allowance |
+| `ProductsApp-Stage` | `Stage.xcconfig` | Placeholder `.invalid` URL | HTTPS only |
+| `ProductsApp-Prod` | `Prod.xcconfig` | Placeholder `.invalid` URL | HTTPS only |
 
-Replace the `.invalid` stage and production URLs with deployed ProductsBackend URLs before using those schemes. `AppConfiguration` reads the generated `API_BASE_URL` Info.plist value and fails at startup when it is missing or is not an HTTP(S) URL. Environment files contain no secrets.
+Replace the stage and production placeholders with deployed ProductsBackend HTTPS URLs before using those schemes. `AppConfiguration` validates `API_BASE_URL` at startup. The XCConfig files contain no secrets.
 
 ## Architecture
 
-- `ProductsApp/App`: composition root, environment loading, navigation route definitions, minimal root view
-- `ProductsApp/Core/Networking`: URLSession transport, request construction, decoding, and API errors
-- `ProductsApp/Data`: backend DTOs, DTO-to-domain mapping, and live repository implementations
-- `ProductsApp/Domain`: UI-independent models and repository protocols
-- `ProductsApp/Features`: feature-owned presentation folders reserved for later phases
-- `ProductsAppTests`: decoding, mapping, request/error handling, and repository tests
+```text
+SwiftUI View -> @MainActor ViewModel -> Domain repository protocol
+                                           |
+                                  Data repository -> APIClient -> URLSession
+```
 
-`DependencyContainer` is the only live composition point. Presentation code will depend on repository protocols; the concrete repositories route all catalogue and enquiry traffic exclusively through ProductsBackend.
+- `App`: composition root and typed `NavigationStack` routing
+- `Features`: feature-owned views and ViewModels
+- `Domain`: UI-independent models, errors, and repository protocols
+- `Data`: backend DTOs, explicit mapping, and live repositories
+- `Core/Networking`: request construction, transport, decoding, and API errors
+- `Shared/Views`: product presentation and common loading/empty/error states
 
-## Backend coverage
+All catalogue data and enquiries go through ProductsBackend. DTOs mirror `../ProductsBackend/API_CONTRACT.md`; all product fields are required, while the `rating` key is required and may contain `null`.
 
-`CatalogueRepository` covers:
+## Implemented flows
 
-- `GET /api/v1/home`
-- `GET /api/v1/categories`
-- `GET /api/v1/categories/:category/products`
-- `GET /api/v1/products/search?q=`
-- `GET /api/v1/products/:id`
+- Home: five backend-ordered featured products plus category navigation
+- Category: backend-ranked top-rated and additional sections
+- Search: explicit submission, results, empty state, error, and retry
+- Product Details: image, description, USD price assumption, nullable rating, and enquiry action
+- Enquiry: local validation, backend field errors, single in-flight submission
+- Thank You: shown only after `submitted: true`, with navigation reset to Home
 
-`EnquiryRepository` covers:
-
-- `POST /api/v1/enquiries`
-
-The exact wire contract is maintained in `/Users/avinashsharma/Documents/ProductsBackend/API_CONTRACT.md`. DTOs keep backend names such as `imageUrl` and `productId`; domain models use Swift naming. Every product field is required, while the `rating` key is required and its value may be `null`.
-
-## Current scope
-
-The app currently renders only a build-verification root view. Home, category, search, details, enquiry, and thank-you presentation flows belong to subsequent phases. Stage/prod endpoints are deliberately unset placeholders because deployed backend URLs were not supplied.
+Remote screens provide loading, empty, retryable error, and pull-to-refresh behavior where appropriate. Known trade-offs and future priorities are documented in `DECISIONS.md`; AI assistance and corrections are documented in `AI_USAGE.md`.

@@ -1,26 +1,51 @@
 # AI usage
 
-AI assistance has been used throughout this challenge as requested by the AI-Native Engineer exercise. This log records actual work and corrections; it does not estimate or invent elapsed time.
+AI assistance was used throughout this AI-Native Engineer challenge. Every generated change was reviewed against the challenge, `PLAN.md`, `DECISIONS.md`, `AGENTS.md`, and the implemented backend contract.
 
-## Planning
+## Tools and model
 
-- Reviewed the coding challenge, backend API contract, and the earlier ProductsBackend implementation context.
-- Created and refined `PLAN.md`, `DECISIONS.md`, and `AGENTS.md` for a native SwiftUI client with lightweight MVVM/Clean Architecture.
-- Kept feature presentation work outside Phase 1 and documented the separation between DTOs and domain models.
+- OpenAI Codex desktop with its GPT-5-based coding agent
+- Codex terminal execution and patch-based file editing
+- Xcode, `xcodebuild`, XCTest, iOS Simulator, and `simctl`
+- `curl`, Docker Compose, and Mailpit for local end-to-end verification
+- Poppler rendering/text extraction for the final review of the supplied challenge PDF
 
-## Phase 1 implementation
+No code-generation library, project generator, third-party iOS package, paid service, or external account was used.
 
-- Created the SwiftUI application and XCTest targets, environment configurations, composition root, networking layer, domain models, and repositories for all six client endpoints.
-- Derived the DTO shapes from `ProductsBackend/API_CONTRACT.md`, not from planning prose.
-- Added focused tests for environment loading, product decoding and mapping, request construction, server/transport/decoding errors, and catalogue/enquiry repositories.
-- Added reviewer setup and command-line verification instructions to `README.md`.
+## Agent instructions and plans
 
-## Corrections made during implementation
+- `AGENTS.md` defined layer boundaries, Swift conventions, API/error rules, security expectations, and critical-path testing.
+- `PLAN.md` mapped the challenge criteria to architecture, API contracts, navigation, phases, and tests.
+- `DECISIONS.md` recorded assumptions, trade-offs, cuts, and future priorities.
 
-- Enforced `rating` as a required JSON key whose value may be `null`. A synthesized optional decoder would also accept a missing key and would therefore be weaker than the backend contract.
-- Percent-encoded each dynamic path segment so category names such as `men's clothing` are sent safely without changing their value.
-- Added a development-only cleartext transport allowance for the documented `http://127.0.0.1:3000` backend. Stage and production configurations remain HTTPS-only.
-- Created the Xcode project directly because no project generator was available; this avoided adding a build-time dependency that the plan did not require.
-- Replaced generated Info.plist key injection with explicit development and secure plist templates after the first XCTest launch showed that Xcode omitted the custom `API_BASE_URL` key.
+## Representative prompts and influential moments
 
-No feature screens, view models, third-party packages, commits, or pushes were produced in Phase 1.
+1. Plan the standalone ProductsBackend from the challenge, OpenAPI document, and real Fake Store responses, while keeping product and email providers replaceable.
+2. Implement and verify the backend catalogue and enquiry phases, then create `API_CONTRACT.md` from the actual code as the iOS integration source of truth.
+3. Plan ProductsApp with SwiftUI, lightweight MVVM/Clean boundaries, protocol injection, XCConfig environments, and no unnecessary dependencies.
+4. Implement the iOS networking/domain foundation strictly from the backend contract, including the required-but-nullable `rating` key.
+5. Implement and finally review all SwiftUI flows, state handling, navigation, validation, tests, local backend behavior, and Mailpit delivery without changing backend contracts.
+
+## AI mistakes and corrections
+
+- A synthesized optional decoder would have accepted a missing `rating` key. The DTO was changed to require the key while accepting explicit `null`.
+- Xcode’s generated Info.plist omitted the custom `API_BASE_URL` during the first test launch. Explicit Dev and secure plist templates fixed startup configuration.
+- An initial empty-state draft used `ContentUnavailableView`, which requires iOS 17. It was replaced with native custom state views to preserve the iOS 16 target.
+- The first networking implementation converted cancellation into a transport failure. Final review preserved `CancellationError`, preventing false connectivity errors in cancelled UI tasks.
+- The enquiry ViewModel initially inspected networking-layer `APIError` details. Final review moved translation into the Data repository and exposed a Domain enquiry error instead.
+- The initial Xcode project added physical subfolder paths as flat file references, causing names such as `App/DependencyContainer.swift` to appear in the navigator. The project references were rebuilt as nested groups matching the on-disk App, Core, Domain, Data, Features, Shared, Support, and test folders.
+- Simulator screenshots verified the live Home screen in light and dark mode, but interactive Device Hub control lacked macOS Computer Use permission. Nested-screen visual traversal is explicitly unverified rather than fabricated.
+
+## Verification performed with AI assistance
+
+- Built the Dev scheme and ran the complete XCTest suite.
+- Exercised all six backend endpoints against the running ProductsBackend.
+- Confirmed exactly five featured products, category ranking, search results and empty search, and product details.
+- Submitted a fresh enquiry and confirmed `submitted: true` plus a new Mailpit message containing customer and product information.
+- Reviewed tracked/untracked files for secrets, build output, and user-specific Xcode state.
+
+## Time record
+
+A reliable stopwatch-style split across planning, building, testing, and review was not captured during the iterative chat sessions. No retrospective duration is provided because it would be fabricated. This is a submission limitation; future challenge work should start a time log before implementation.
+
+No commits or pushes were performed by the AI.

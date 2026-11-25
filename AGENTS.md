@@ -1,6 +1,6 @@
 # ProductsApp agent guide
 
-ProductsApp is a SwiftUI client for the implemented ProductsBackend contract at `/Users/avinashsharma/Documents/ProductsBackend/API_CONTRACT.md`. Treat that file—not Fake Store or assumptions—as the networking source of truth. Preserve the scope and decisions in `PLAN.md` and `DECISIONS.md`.
+ProductsApp is a SwiftUI client for the implemented contract at `../ProductsBackend/API_CONTRACT.md`. Treat that file—not Fake Store or assumptions—as the networking source of truth. Preserve the scope and decisions in `PLAN.md` and `DECISIONS.md`.
 
 ## Boundaries and dependencies
 

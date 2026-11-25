@@ -57,6 +57,37 @@ final class LiveEnquiryRepositoryTests: XCTestCase {
         }
     }
 
+    func testMapsBackendValidationDetailsToDomainError() async throws {
+        let body = Data("""
+        {"error":{"code":"VALIDATION_ERROR","message":"The request is invalid.","details":{"email":["Email is not accepted."]}}}
+        """.utf8)
+        let httpClient = MockHTTPClient { request in
+            (
+                body,
+                try makeHTTPResponse(
+                    url: request.url ?? URL(fileURLWithPath: "/"),
+                    statusCode: 400
+                )
+            )
+        }
+        let repository = try makeRepository(httpClient: httpClient)
+
+        do {
+            try await repository.submit(
+                EnquirySubmission(
+                    name: "Asha",
+                    email: "invalid@example.test",
+                    productID: 1,
+                    message: nil
+                )
+            )
+            XCTFail("Expected a domain enquiry error")
+        } catch let error as EnquirySubmissionError {
+            XCTAssertEqual(error.message, "The request is invalid.")
+            XCTAssertEqual(error.fieldErrors[.email], "Email is not accepted.")
+        }
+    }
+
     private func makeRepository(httpClient: any HTTPClient) throws -> LiveEnquiryRepository {
         LiveEnquiryRepository(
             apiClient: APIClient(

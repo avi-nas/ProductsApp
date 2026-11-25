@@ -48,6 +48,10 @@ struct APIClient: Sendable {
         let response: HTTPURLResponse
         do {
             (data, response) = try await httpClient.data(for: request)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as URLError where error.code == .cancelled {
+            throw CancellationError()
         } catch let error as APIError {
             throw error
         } catch {

@@ -87,4 +87,25 @@ final class APIClientTests: XCTestCase {
             XCTAssertEqual(error, .decoding)
         }
     }
+
+    func testPreservesCancellation() async throws {
+        let httpClient = MockHTTPClient { _ in
+            throw CancellationError()
+        }
+        let client = APIClient(
+            baseURL: try XCTUnwrap(URL(string: "http://127.0.0.1:3000")),
+            httpClient: httpClient
+        )
+
+        do {
+            let _: APIEnvelopeDTO<[String]> = try await client.get(
+                path: ["api", "v1", "categories"]
+            )
+            XCTFail("Expected cancellation")
+        } catch is CancellationError {
+            // Expected: callers can distinguish cancellation from connectivity failure.
+        } catch {
+            XCTFail("Expected CancellationError, received \(error)")
+        }
+    }
 }
