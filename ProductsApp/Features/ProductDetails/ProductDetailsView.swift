@@ -40,44 +40,69 @@ struct ProductDetailsView: View {
     }
 
     private func details(_ product: Product) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                ProductImage(url: product.imageURL, height: 320)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(product.category.uppercased())
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tint)
-                    Text(product.title)
-                        .font(.largeTitle.bold())
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(product.price, format: .currency(code: "USD"))
-                        .font(.title2.bold())
-                    RatingView(rating: product.rating)
-                        .font(.subheadline)
-                }
-                Divider()
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("About this product")
-                        .font(.title3.bold())
-                    Text(product.description.isEmpty ? "No description available." : product.description)
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                Button {
-                    showEnquiry(product.id)
-                } label: {
-                    Label("Enquire about this product", systemImage: "envelope")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .accessibilityIdentifier("enquiryButton")
+        NativeSplitArrangement {
+            ScrollView {
+                productImage(product)
+                    .padding()
             }
-            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } secondary: {
+            ScrollView {
+                productInformation(product)
+                    .padding()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } fallback: {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    productImage(product)
+                    productInformation(product)
+                }
+                .padding()
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
         .refreshable { await viewModel.reload() }
+    }
+
+    private func productImage(_ product: Product) -> some View {
+        ProductImage(url: product.imageURL, height: 320)
+    }
+
+    private func productInformation(_ product: Product) -> some View {
+        VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(product.category.uppercased())
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tint)
+                Text(product.title)
+                    .font(.largeTitle.bold())
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(product.price, format: .currency(code: "USD"))
+                    .font(.title2.bold())
+                RatingView(rating: product.rating)
+                    .font(.subheadline)
+            }
+            Divider()
+            VStack(alignment: .leading, spacing: 8) {
+                Text("About this product")
+                    .font(.title3.bold())
+                Text(product.description.isEmpty ? "No description available." : product.description)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Button {
+                showEnquiry(product.id)
+            } label: {
+                Label("Enquire about this product", systemImage: "envelope")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .accessibilityIdentifier("enquiryButton")
+        }
     }
 }

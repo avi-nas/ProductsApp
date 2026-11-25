@@ -4,17 +4,37 @@ struct ThankYouView: View {
     let returnHome: () -> Void
 
     var body: some View {
-        VStack(spacing: 22) {
-            ZStack {
-                Circle()
-                    .fill(Color.green.opacity(0.14))
-                    .frame(width: 104, height: 104)
-                Image(systemName: "checkmark")
-                    .font(.system(size: 44, weight: .bold))
-                    .foregroundStyle(.green)
+        HorizontalSizeClassLayout {
+            VStack(spacing: 22) {
+                confirmationIcon
+                confirmationContent
             }
-            .accessibilityHidden(true)
+        } regular: {
+            HStack(spacing: 32) {
+                confirmationIcon
+                confirmationContent
+            }
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+        .navigationBarBackButtonHidden(true)
+    }
 
+    private var confirmationIcon: some View {
+        ZStack {
+            Circle()
+                .fill(Color.green.opacity(0.14))
+                .frame(width: 104, height: 104)
+            Image(systemName: "checkmark")
+                .font(.system(size: 44, weight: .bold))
+                .foregroundStyle(.green)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private var confirmationContent: some View {
+        VStack(spacing: 22) {
             VStack(spacing: 10) {
                 Text("Thank you")
                     .font(.largeTitle.bold())
@@ -33,10 +53,6 @@ struct ThankYouView: View {
             .controlSize(.large)
             .accessibilityIdentifier("returnHomeButton")
         }
-        .padding(28)
         .frame(maxWidth: 520)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
-        .navigationBarBackButtonHidden(true)
     }
 }
