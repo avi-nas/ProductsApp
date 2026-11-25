@@ -81,18 +81,41 @@ struct SearchView: View {
 
     private func results(_ products: [Product]) -> some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(products) { product in
-                    Button {
-                        showProduct(product.id)
-                    } label: {
-                        ProductRow(product: product)
+            HorizontalSizeClassLayout {
+                LazyVStack(spacing: 12) {
+                    ForEach(products) { product in
+                        productButton(product) {
+                            ProductRow(product: product)
+                        }
                     }
-                    .buttonStyle(.plain)
+                }
+            } regular: {
+                LazyVGrid(columns: regularColumns, spacing: 12) {
+                    ForEach(products) { product in
+                        productButton(product) {
+                            ProductCard(product: product)
+                        }
+                    }
                 }
             }
             .padding()
         }
+    }
+
+    private var regularColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: 2)
+    }
+
+    private func productButton<Label: View>(
+        _ product: Product,
+        @ViewBuilder label: () -> Label
+    ) -> some View {
+        Button {
+            showProduct(product.id)
+        } label: {
+            label()
+        }
+        .buttonStyle(.plain)
     }
 
     private func submit() {

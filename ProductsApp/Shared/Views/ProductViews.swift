@@ -73,7 +73,7 @@ struct ProductCard: View {
             Text(product.title)
                 .font(.headline)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
+                .lineLimit(2, reservesSpace: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             HStack(alignment: .firstTextBaseline) {
                 Text(product.price, format: .currency(code: "USD"))

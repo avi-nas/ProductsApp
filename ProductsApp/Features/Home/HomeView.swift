@@ -67,14 +67,7 @@ struct HomeView: View {
                         sectionTitle("Shop by category")
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 10) {
-                                ForEach(content.categories, id: \.self) { category in
-                                    Button(category.capitalized) {
-                                        showCategory(category)
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .buttonBorderShape(.capsule)
-                                    .accessibilityIdentifier("category_\(category)")
-                                }
+                                categoryButtons(content.categories)
                             }
                             .padding(.horizontal)
                         }
@@ -83,16 +76,20 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     sectionTitle("Featured")
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 14) {
-                            ForEach(content.featuredProducts) { product in
-                                Button {
-                                    showProduct(product.id)
-                                } label: {
-                                    ProductCard(product: product)
+                    HorizontalSizeClassLayout {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            LazyHStack(spacing: 14) {
+                                ForEach(content.featuredProducts) { product in
+                                    productButton(product)
                                         .frame(width: 245)
                                 }
-                                .buttonStyle(.plain)
+                            }
+                            .padding(.horizontal)
+                        }
+                    } regular: {
+                        LazyVGrid(columns: regularColumns, spacing: 16) {
+                            ForEach(content.featuredProducts) { product in
+                                productButton(product)
                             }
                         }
                         .padding(.horizontal)
@@ -103,6 +100,35 @@ struct HomeView: View {
         }
         .background(Color(.systemGroupedBackground))
         .refreshable { await viewModel.reload() }
+    }
+
+    private var regularColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16, alignment: .top), count: 2)
+    }
+
+    @ViewBuilder
+    private func categoryButtons(_ categories: [String]) -> some View {
+        ForEach(categories, id: \.self) { category in
+            categoryButton(category)
+        }
+    }
+
+    private func categoryButton(_ category: String) -> some View {
+        Button(category.capitalized) {
+            showCategory(category)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.capsule)
+        .accessibilityIdentifier("category_\(category)")
+    }
+
+    private func productButton(_ product: Product) -> some View {
+        Button {
+            showProduct(product.id)
+        } label: {
+            ProductCard(product: product)
+        }
+        .buttonStyle(.plain)
     }
 
     private func sectionTitle(_ title: String) -> some View {

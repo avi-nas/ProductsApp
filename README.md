@@ -100,3 +100,21 @@ All catalogue data and enquiries go through ProductsBackend. DTOs mirror `../Pro
 - Thank You: shown only after `submitted: true`, with navigation reset to Home
 
 Remote screens provide loading, empty, retryable error, and pull-to-refresh behavior where appropriate. Known trade-offs and future priorities are documented in `DECISIONS.md`; AI assistance and corrections are documented in `AI_USAGE.md`.
+
+## iPhone Duo and resizable layouts
+
+Build with Xcode 27.1 or later to enable Apple’s full-display iPhone Duo behavior. The iOS 16 deployment target is unchanged.
+
+- Standard `NavigationStack`, `Form`, `ScrollView`, toolbar, and safe-area behavior let iOS resize and reposition the existing interface across inner, outer, folded, and Split View configurations.
+- Home retains its familiar horizontal compact presentation and expands categories and featured products into an even two-column regular-width grid.
+- Category and Search retain product rows at compact width and distribute results across even two-column grids at regular width. Accessibility Dynamic Type uses the compact single-column presentation.
+- Product Details uses a bounded, horizontal `ArrangementView` split at regular width on iOS 27.1 or later, keeping the image and product information in separate panes while responding to reserved folding regions. Compact widths, accessibility Dynamic Type, and iOS 16–27.0 use the complete vertical details layout.
+- Enquiry remains a native `Form`, allowing the system to supply readable margins, keyboard avoidance, safe areas, and reserved-region behavior.
+- Thank You places its confirmation and action vertically at compact width and side by side at regular width.
+- The existing `NavigationStack`, `@StateObject` ViewModels, search query, enquiry fields, and navigation path remain alive while the window resizes between displays.
+- System navigation and toolbar components retain Apple’s vertical placement. Foreground content remains inside system safe areas.
+- Portrait and both landscape orientations are declared for iPhone; iPad also supports upside-down portrait.
+
+There is no Duo-specific device detection, screen constant, pose model, interface-orientation branch, or custom reserved-region calculation. A shared size-class container owns compact/regular selection, and a shared split-arrangement wrapper owns the only iOS 27.1 availability check.
+
+To inspect Duo layouts, choose an installed **iPhone Duo** simulator in Xcode Device Hub, then exercise closed, fully open, partially folded, rotated, and Split View configurations. Also regress the app on a standard iPhone simulator. See Apple’s [preparation guide](https://developer.apple.com/iphone-duo/prepare/) and [Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/designing-for-iphone-duo).
