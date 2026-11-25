@@ -1,3 +1,11 @@
+
+
+https://github.com/user-attachments/assets/b6fa2400-77dc-4ac3-88ac-8ab2a2221310
+
+
+
+
+
 # ProductsApp
 
 ProductsApp is a native SwiftUI catalogue for ProductsBackend. The selected challenge stack is **Swift/SwiftUI for iOS** plus the separate **Node.js/TypeScript ProductsBackend** repository. SwiftUI, `NavigationStack`, and async/await provide a compact native client with no third-party packages; the backend keeps Fake Store and SMTP concerns out of the app and makes both providers replaceable.
